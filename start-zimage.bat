@@ -12,110 +12,110 @@ echo    Z-Image-Turbo Web UI - Launcher
 echo ===========================================
 echo.
 
-:: 1. Verifier Python
-echo [1/6] Verification de Python...
+:: 1. Check Python
+echo [1/6] Checking Python...
 python --version >nul 2>&1
 if errorlevel 1 (
     echo.
-    echo ❌ ERREUR: Python non trouve!
-    echo    Installez Python 3.9-3.12 depuis https://python.org
+    echo ❌ ERROR: Python not found!
+    echo    Install Python 3.9-3.12 from https://python.org
     pause
     exit /b 1
 )
 for /f "tokens=*" %%a in ('python --version 2^>^&1') do echo    ✅ %%a
 
-:: 2. Creer le venv si besoin
+:: 2. Create venv if needed
 echo.
-echo [2/6] Verification du venv...
+echo [2/6] Checking venv...
 if not exist "%VENV_DIR%" (
-    echo    Creation du venv...
+    echo    Creating venv...
     python -m venv "%VENV_DIR%"
     if errorlevel 1 (
         echo.
-        echo ❌ ERREUR: Impossible de creer le venv
+        echo ❌ ERROR: Unable to create venv
         pause
         exit /b 1
     )
-    echo    ✅ Venv cree
+    echo    ✅ Venv created
 ) else (
-    echo    ✅ Venv existe
+    echo    ✅ Venv exists
 )
 
-:: Verifier que python.exe existe dans le venv
+:: Check that python.exe exists in venv
 if not exist "%PYTHON_EXE%" (
     echo.
-    echo ❌ ERREUR: Python introuvable dans le venv
+    echo ❌ ERROR: Python not found in venv
     pause
     exit /b 1
 )
 
-:: 3. Nettoyer les distributions invalides residuelles
+:: 3. Clean invalid residual distributions
 echo.
-echo [3/6] Nettoyage des distributions invalides...
+echo [3/6] Cleaning invalid distributions...
 if exist "%VENV_DIR%\Lib\site-packages\~orch*" (
     rd /s /q "%VENV_DIR%\Lib\site-packages\~orch" 2>nul
     rd /s /q "%VENV_DIR%\Lib\site-packages\~orch-2.10.0.dist-info" 2>nul
-    echo    🧹 Distributions corrompues nettoyees
+    echo    🧹 Corrupted distributions cleaned
 ) else (
-    echo    ✅ Pas de distributions invalides
+    echo    ✅ No invalid distributions
 )
 if exist "%VENV_DIR%\Lib\site-packages\~unctorch" (
     rd /s /q "%VENV_DIR%\Lib\site-packages\~unctorch" 2>nul
-    echo    🧹 Functorch corrompu nettoye
+    echo    🧹 Corrupted functorch cleaned
 )
 
-:: 4. Verifier/Installer PyTorch avec CUDA
+:: 4. Check/Install PyTorch with CUDA
 echo.
-echo [4/6] Verification de PyTorch + CUDA...
+echo [4/6] Checking PyTorch + CUDA...
 "%PYTHON_EXE%" -c "import torch; assert torch.cuda.is_available(), 'CUDA not available'" 2>nul
 if errorlevel 1 (
-    echo    📦 Installation de PyTorch 2.6 + CUDA 12.4...
-    echo    (telechargement ~2.5 GB, cela peut prendre plusieurs minutes)
+    echo    📦 Installing PyTorch 2.6 + CUDA 12.4...
+    echo    (downloading ~2.5 GB, this may take several minutes)
     echo.
     "%PIP_EXE%" install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
     if errorlevel 1 (
         echo.
-        echo ❌ ERREUR: Installation de PyTorch echouee!
+        echo ❌ ERROR: PyTorch installation failed!
         pause
         exit /b 1
     )
-    echo    ✅ PyTorch + CUDA installes
+    echo    ✅ PyTorch + CUDA installed
 ) else (
     for /f "tokens=*" %%a in ('"%PYTHON_EXE%" -c "import torch; print(f\'PyTorch {torch.__version__} - CUDA {torch.version.cuda}\')" 2^>^&1') do echo    ✅ %%a
 )
 
-:: 5. Verifier/Installer les autres dependances
+:: 5. Check/Install other dependencies
 echo.
-echo [5/6] Verification des autres dependances...
+echo [5/6] Checking other dependencies...
 "%PYTHON_EXE%" -c "import gradio, diffusers, PIL, transformers" 2>nul
 if errorlevel 1 (
-    echo    📦 Installation des dependances...
+    echo    📦 Installing dependencies...
     "%PIP_EXE%" install -r "%PROJECT_DIR%requirements.txt"
     if errorlevel 1 (
         echo.
-        echo ❌ ERREUR: Installation des dependances echouee!
+        echo ❌ ERROR: Dependencies installation failed!
         pause
         exit /b 1
     )
-    echo    ✅ Dependances installees
+    echo    ✅ Dependencies installed
 ) else (
-    echo    ✅ Dependances OK
+    echo    ✅ Dependencies OK
 )
 
-:: 6. Verifier CUDA
+:: 6. Check GPU
 echo.
-echo [6/6] Verification GPU...
-"%PYTHON_EXE%" -c "import torch; cuda=torch.cuda.is_available(); print('   GPU:', torch.cuda.get_device_name(0) if cuda else 'CPU seulement')" 2>nul
+echo [6/6] Checking GPU...
+"%PYTHON_EXE%" -c "import torch; cuda=torch.cuda.is_available(); print('   GPU:', torch.cuda.get_device_name(0) if cuda else 'CPU only')" 2>nul
 
-:: Lancer
+:: Launch
 echo.
 echo ===========================================
-echo    🚀 LANCEMENT DE L'APPLICATION
+echo    🚀 LAUNCHING APPLICATION
 echo ===========================================
 echo.
 echo    Local:  http://localhost:7860
 echo.
-echo    Pour arreter: fermez cette fenetre
+echo    To stop: close this window
 echo.
 
 cd /d "%PROJECT_DIR%"
@@ -123,6 +123,6 @@ cd /d "%PROJECT_DIR%"
 
 echo.
 echo ===========================================
-echo    Application arretee (code: %ERRORLEVEL%)
+echo    Application stopped (code: %ERRORLEVEL%)
 echo ===========================================
 pause

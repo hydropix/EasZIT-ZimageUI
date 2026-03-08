@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Z-Image-Turbo Web UI
-Interface Gradio pour générer des images avec Z-Image-Turbo
-Exécute sur PC avec GPU, accès distant via navigateur
+Gradio interface for generating images with Z-Image-Turbo
+Runs on PC with GPU, remote access via browser
 """
 
 import os
@@ -25,20 +25,20 @@ DEFAULT_STEPS = 9
 DEFAULT_SEED = -1
 OUTPUT_DIR = Path("outputs")
 
-# Global variable pour le pipeline
+# Global variable for the pipeline
 pipe = None
 model_loaded = False
 model_loading = False
 
 
 def setup_output_dir():
-    """Crée le dossier de sortie s'il n'existe pas"""
+    """Creates the output folder if it doesn't exist"""
     OUTPUT_DIR.mkdir(exist_ok=True)
     (OUTPUT_DIR / "images").mkdir(exist_ok=True)
 
 
 def get_available_device():
-    """Détecte le meilleur device disponible"""
+    """Detects the best available device"""
     if torch.cuda.is_available():
         return "cuda"
     elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
@@ -54,23 +54,23 @@ def load_model(
     attention_backend="sdpa",
     progress=gr.Progress()
 ):
-    """Charge le modèle Z-Image-Turbo"""
+    """Loads the Z-Image-Turbo model"""
     global pipe, model_loaded, model_loading
     
     if model_loading:
-        return "⏳ Chargement déjà en cours..."
+        return "⏳ Loading already in progress..."
     
     if model_loaded:
-        return "✅ Modèle déjà chargé!"
+        return "✅ Model already loaded!"
     
     model_loading = True
     
     try:
         from diffusers import ZImagePipeline
         
-        progress(0.1, desc="Import des bibliothèques...")
+        progress(0.1, desc="Importing libraries...")
         
-        # Détection du dtype
+        # Detect dtype
         if dtype_choice == "bfloat16" and torch.cuda.is_available():
             dtype = torch.bfloat16
         elif dtype_choice == "float16":
@@ -79,50 +79,50 @@ def load_model(
             dtype = torch.float32
         
         device = get_available_device()
-        progress(0.2, desc=f"Chargement du modèle sur {device.upper()}...")
-        print(f"📥 Téléchargement du modèle depuis HuggingFace (~13 GB)...")
+        progress(0.2, desc=f"Loading model on {device.upper()}...")
+        print(f"📥 Downloading model from HuggingFace (~13 GB)...")
         
-        # Chargement du pipeline
+        # Load pipeline
         pipe = ZImagePipeline.from_pretrained(
             MODEL_ID,
             torch_dtype=dtype,
             low_cpu_mem_usage=True,
         )
         
-        progress(0.6, desc="Configuration du modèle...")
+        progress(0.6, desc="Configuring model...")
         
-        # Configuration de l'attention
+        # Configure attention
         if attention_backend == "flash" and hasattr(pipe.transformer, 'set_attention_backend'):
             try:
                 pipe.transformer.set_attention_backend("flash")
-                print("✅ Flash Attention 2 activé")
+                print("✅ Flash Attention 2 enabled")
             except Exception as e:
-                print(f"⚠️ Flash Attention non disponible: {e}")
+                print(f"⚠️ Flash Attention not available: {e}")
         elif attention_backend == "flash3" and hasattr(pipe.transformer, 'set_attention_backend'):
             try:
                 pipe.transformer.set_attention_backend("_flash_3")
-                print("✅ Flash Attention 3 activé")
+                print("✅ Flash Attention 3 enabled")
             except Exception as e:
-                print(f"⚠️ Flash Attention 3 non disponible: {e}")
+                print(f"⚠️ Flash Attention 3 not available: {e}")
         
-        # CPU offloading pour mémoire limitée
+        # CPU offloading for limited memory
         if enable_cpu_offload:
             pipe.enable_model_cpu_offload()
-            print("✅ CPU offloading activé")
+            print("✅ CPU offloading enabled")
         else:
             pipe.to(device)
         
-        # Compilation pour accélération
+        # Compilation for acceleration
         if compile_model and hasattr(torch, 'compile'):
             try:
-                progress(0.8, desc="Compilation du modèle (peut prendre du temps)...")
+                progress(0.8, desc="Compiling model (may take time)...")
                 pipe.transformer.compile()
-                print("✅ Modèle compilé")
+                print("✅ Model compiled")
             except Exception as e:
-                print(f"⚠️ Compilation désactivée: {e}")
-                print("   Le modèle fonctionnera sans compilation.")
+                print(f"⚠️ Compilation disabled: {e}")
+                print("   Model will run without compilation.")
         
-        progress(1.0, desc="Prêt!")
+        progress(1.0, desc="Ready!")
         model_loaded = True
         model_loading = False
         
@@ -130,15 +130,15 @@ def load_model(
         if torch.cuda.is_available():
             device_info += f" ({torch.cuda.get_device_name(0)})"
         
-        return f"✅ Modèle chargé avec succès sur {device_info} avec {dtype_choice}!"
+        return f"✅ Model loaded successfully on {device_info} with {dtype_choice}!"
         
     except Exception as e:
         model_loading = False
-        return f"❌ Erreur lors du chargement: {str(e)}"
+        return f"❌ Error during loading: {str(e)}"
 
 
 def unload_model():
-    """Décharge le modèle pour libérer la VRAM"""
+    """Unloads the model to free VRAM"""
     global pipe, model_loaded
     
     if pipe is not None:
@@ -146,9 +146,9 @@ def unload_model():
         pipe = None
         torch.cuda.empty_cache()
         model_loaded = False
-        return "🗑️ Modèle déchargé. VRAM libérée."
+        return "🗑️ Model unloaded. VRAM freed."
     
-    return "Aucun modèle à décharger."
+    return "No model to unload."
 
 
 def generate_image(
@@ -162,30 +162,30 @@ def generate_image(
     batch_size=1,
     progress=gr.Progress()
 ):
-    """Génère une image avec Z-Image-Turbo"""
+    """Generates an image with Z-Image-Turbo"""
     global pipe, model_loaded
     
     if not model_loaded or pipe is None:
-        return None, "❌ Le modèle n'est pas chargé. Veuillez d'abord charger le modèle."
+        return None, "❌ Model is not loaded. Please load the model first."
     
     if not prompt or prompt.strip() == "":
-        return None, "❌ Veuillez entrer un prompt."
+        return None, "❌ Please enter a prompt."
     
     try:
-        # Gestion du seed
+        # Handle seed
         if seed == -1:
             seed = int(time.time()) % 2**32
         
         generator = torch.Generator(get_available_device()).manual_seed(seed)
         
-        # Ajustement pour batch
+        # Adjust for batch
         actual_steps = max(1, num_steps)
         
-        progress(0, desc="Génération en cours...")
+        progress(0, desc="Generation in progress...")
         
         start_time = time.time()
         
-        # Génération
+        # Generation
         result = pipe(
             prompt=prompt,
             negative_prompt=negative_prompt if negative_prompt else None,
@@ -196,14 +196,14 @@ def generate_image(
             generator=generator,
             num_images_per_prompt=batch_size,
             callback_on_step_end=lambda pipe_obj, step, timestep, kwargs: (
-                progress(step / actual_steps, desc=f"Étape {step}/{actual_steps}...") 
+                progress(step / actual_steps, desc=f"Step {step}/{actual_steps}...") 
                 or kwargs
             ) if step % 2 == 0 else kwargs,
         )
         
         elapsed = time.time() - start_time
         
-        # Sauvegarde
+        # Save
         images_to_return = []
         saved_paths = []
         
@@ -215,9 +215,9 @@ def generate_image(
             saved_paths.append(str(filepath))
             images_to_return.append(image)
         
-        progress(1.0, desc="Terminé!")
+        progress(1.0, desc="Done!")
         
-        info = f"✅ Génération terminée en {elapsed:.2f}s | Seed: {seed} | Sauvegardé dans: {OUTPUT_DIR / 'images'}"
+        info = f"✅ Generation completed in {elapsed:.2f}s | Seed: {seed} | Saved to: {OUTPUT_DIR / 'images'}"
         
         if len(images_to_return) == 1:
             return images_to_return[0], info
@@ -225,11 +225,11 @@ def generate_image(
             return images_to_return, info
             
     except Exception as e:
-        return None, f"❌ Erreur de génération: {str(e)}"
+        return None, f"❌ Generation error: {str(e)}"
 
 
 def get_system_info():
-    """Retourne les informations système"""
+    """Returns system information"""
     info = []
     
     # PyTorch
@@ -237,21 +237,21 @@ def get_system_info():
     
     # CUDA
     if torch.cuda.is_available():
-        info.append(f"CUDA disponible: ✅")
-        info.append(f"Version CUDA: {torch.version.cuda}")
+        info.append(f"CUDA available: ✅")
+        info.append(f"CUDA version: {torch.version.cuda}")
         info.append(f"GPU: {torch.cuda.get_device_name(0)}")
-        info.append(f"VRAM totale: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+        info.append(f"Total VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
     else:
-        info.append("CUDA disponible: ❌ (utilisation CPU)")
+        info.append("CUDA available: ❌ (CPU mode)")
     
-    # Device courant
-    info.append(f"Device actif: {get_available_device().upper()}")
+    # Current device
+    info.append(f"Active device: {get_available_device().upper()}")
     
     return "\n".join(info)
 
 
 def create_ui():
-    """Crée l'interface Gradio"""
+    """Creates the Gradio interface"""
     
     custom_css = """
     .container {
@@ -271,7 +271,7 @@ def create_ui():
     }
     """
     
-    # JavaScript pour la confirmation de fermeture/rechargement
+    # JavaScript for close/reload confirmation
     confirm_exit_js = """
     <script>
     window.addEventListener('beforeunload', function (e) {
@@ -283,50 +283,50 @@ def create_ui():
     
     with gr.Blocks(css=custom_css, title="Z-Image-Turbo Web UI") as app:
         
-        # Script de confirmation avant fermeture
+        # Close confirmation script
         gr.HTML(confirm_exit_js)
         
         # Header
         gr.Markdown("""
         # ⚡ Z-Image-Turbo Web UI
         
-        Interface web pour générer des images avec **Z-Image-Turbo** (Alibaba/Tongyi)
+        Web interface for generating images with **Z-Image-Turbo** (Alibaba/Tongyi)
         
-        > Modèle de 6B paramètres | Génération en 8 étapes | Support bilingue EN/ZH
+        > 6B parameter model | 8-step generation | Bilingual EN/ZH support
         """)
         
         with gr.Tabs():
             
-            # Onglet Génération
-            with gr.Tab("🎨 Génération", id="generate"):
+            # Generation Tab
+            with gr.Tab("🎨 Generation", id="generate"):
                 with gr.Row():
-                    # Colonne gauche: Paramètres
+                    # Left column: Parameters
                     with gr.Column(scale=1):
                         
                         prompt = gr.Textbox(
                             label="📝 Prompt",
-                            placeholder="Décrivez l'image que vous souhaitez générer...",
+                            placeholder="Describe the image you want to generate...",
                             lines=4,
                             value=""
                         )
                         
                         negative_prompt = gr.Textbox(
-                            label="⛔ Prompt négatif (optionnel)",
-                            placeholder="Éléments à éviter...",
+                            label="⛔ Negative prompt (optional)",
+                            placeholder="Elements to avoid...",
                             lines=2,
                             value=""
                         )
                         
                         with gr.Row():
                             width = gr.Slider(
-                                label="📐 Largeur",
+                                label="📐 Width",
                                 minimum=512,
                                 maximum=2048,
                                 step=64,
                                 value=1024
                             )
                             height = gr.Slider(
-                                label="📐 Hauteur",
+                                label="📐 Height",
                                 minimum=512,
                                 maximum=2048,
                                 step=64,
@@ -335,12 +335,12 @@ def create_ui():
                         
                         with gr.Row():
                             num_steps = gr.Slider(
-                                label="🔄 Étapes d'inférence",
+                                label="🔄 Inference steps",
                                 minimum=1,
                                 maximum=50,
                                 step=1,
                                 value=9,
-                                info="9 = ~8 forwards DiT (recommandé)"
+                                info="9 = ~8 forwards DiT (recommended)"
                             )
                             guidance_scale = gr.Slider(
                                 label="⚖️ Guidance Scale",
@@ -348,12 +348,12 @@ def create_ui():
                                 maximum=10.0,
                                 step=0.1,
                                 value=0.0,
-                                info="0.0 pour Turbo (recommandé)"
+                                info="0.0 for Turbo (recommended)"
                             )
                         
                         with gr.Row():
                             seed = gr.Number(
-                                label="🎲 Seed (-1 = aléatoire)",
+                                label="🎲 Seed (-1 = random)",
                                 value=-1,
                                 precision=0
                             )
@@ -367,25 +367,25 @@ def create_ui():
                         
                         with gr.Row():
                             generate_btn = gr.Button(
-                                "🚀 Générer l'image",
+                                "🚀 Generate Image",
                                 variant="primary",
                                 scale=2
                             )
                             clear_btn = gr.Button(
-                                "🗑️ Effacer",
+                                "🗑️ Clear",
                                 scale=1
                             )
                         
                     
-                    # Colonne droite: Résultat
+                    # Right column: Result
                     with gr.Column(scale=1):
                         output_image = gr.Image(
-                            label="🖼️ Image générée",
+                            label="🖼️ Generated Image",
                             type="pil",
                             height=600
                         )
                         output_info = gr.Textbox(
-                            label="ℹ️ Informations",
+                            label="ℹ️ Information",
                             lines=3,
                             interactive=False
                         )
@@ -404,58 +404,58 @@ def create_ui():
                     outputs=[output_image, prompt, negative_prompt, width, height, num_steps, guidance_scale, seed, batch_size]
                 )
             
-            # Onglet Modèle
-            with gr.Tab("⚙️ Gestion du Modèle", id="model"):
+            # Model Tab
+            with gr.Tab("⚙️ Model Management", id="model"):
                 with gr.Row():
                     with gr.Column():
-                        gr.Markdown("### 🔧 Configuration du Modèle")
+                        gr.Markdown("### 🔧 Model Configuration")
                         
                         dtype_choice = gr.Radio(
                             choices=["bfloat16", "float16", "float32"],
                             value="bfloat16",
-                            label="Précision (dtype)",
-                            info="bfloat16 recommandé pour les GPUs récents"
+                            label="Precision (dtype)",
+                            info="bfloat16 recommended for recent GPUs"
                         )
                         
                         attention_backend = gr.Radio(
                             choices=["sdpa", "flash", "flash3"],
                             value="sdpa",
-                            label="Backend d'attention",
-                            info="Flash Attention nécessite installation séparée"
+                            label="Attention backend",
+                            info="Flash Attention requires separate installation"
                         )
                         
                         enable_cpu_offload = gr.Checkbox(
-                            label="Activer CPU Offloading",
+                            label="Enable CPU Offloading",
                             value=False,
-                            info="Pour GPUs avec peu de VRAM"
+                            info="For GPUs with limited VRAM"
                         )
                         
                         compile_model = gr.Checkbox(
-                            label="Compiler le modèle (torch.compile) [Experimental]",
+                            label="Compile model (torch.compile) [Experimental]",
                             value=False,
-                            info="+30%% perf mais peut causer des erreurs (desactive si probleme)"
+                            info="+30%% perf but may cause errors (disable if issues)"
                         )
                         
                         with gr.Row():
-                            load_btn = gr.Button("📥 Charger le modèle", variant="primary")
-                            unload_btn = gr.Button("🗑️ Décharger le modèle", variant="stop")
+                            load_btn = gr.Button("📥 Load Model", variant="primary")
+                            unload_btn = gr.Button("🗑️ Unload Model", variant="stop")
                         
                         model_status = gr.Textbox(
-                            label="📊 Statut",
-                            value="Modèle non chargé",
+                            label="📊 Status",
+                            value="Model not loaded",
                             interactive=False,
                             lines=2
                         )
                     
                     with gr.Column():
-                        gr.Markdown("### 💻 Informations Système")
+                        gr.Markdown("### 💻 System Information")
                         system_info = gr.Textbox(
-                            label="🖥️ Informations",
+                            label="🖥️ Information",
                             value=get_system_info(),
                             interactive=False,
                             lines=10
                         )
-                        refresh_info_btn = gr.Button("🔄 Rafraîchir")
+                        refresh_info_btn = gr.Button("🔄 Refresh")
                 
                 load_btn.click(
                     fn=load_model,
@@ -473,20 +473,20 @@ def create_ui():
                     outputs=system_info
                 )
             
-            # Onglet Paramètres avancés
-            with gr.Tab("🔬 Paramètres avancés", id="advanced"):
+            # Advanced Parameters Tab
+            with gr.Tab("🔬 Advanced Parameters", id="advanced"):
                 gr.Markdown("""
-                ### 🎯 Paramètres avancés de génération
+                ### 🎯 Advanced generation parameters
                 
-                Ces paramètres permettent un contrôle fin sur le processus de génération.
+                These parameters allow fine control over the generation process.
                 """
                 )
                 
                 with gr.Row():
                     with gr.Column():
-                        gr.Markdown("#### 📐 Ratios d'aspect prédéfinis")
-                        aspect_1_1 = gr.Button("1:1 Carré (1024×1024)")
-                        aspect_16_9 = gr.Button("16:9 Paysage (1024×576)")
+                        gr.Markdown("#### 📐 Preset aspect ratios")
+                        aspect_1_1 = gr.Button("1:1 Square (1024×1024)")
+                        aspect_16_9 = gr.Button("16:9 Landscape (1024×576)")
                         aspect_9_16 = gr.Button("9:16 Portrait (576×1024)")
                         aspect_4_3 = gr.Button("4:3 (1024×768)")
                         aspect_3_4 = gr.Button("3:4 (768×1024)")
@@ -495,16 +495,16 @@ def create_ui():
                 def set_dimensions(w, h):
                     return w, h
                 
-                # Ces boutons mettraient à jour les sliders dans l'onglet génération
-                # (nécessiterait des composants partagés ou state)
+                # These buttons would update sliders in generation tab
+                # (would require shared components or state)
         
         # Footer
         gr.Markdown("""
         ---
         
-        **Z-Image-Turbo Web UI** | Développé avec [Gradio](https://gradio.app) et [Diffusers](https://huggingface.co/docs/diffusers)
+        **Z-Image-Turbo Web UI** | Built with [Gradio](https://gradio.app) and [Diffusers](https://huggingface.co/docs/diffusers)
         
-        Modèle: [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)
+        Model: [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)
         """)
     
     return app
@@ -512,13 +512,13 @@ def create_ui():
 
 def main():
     parser = argparse.ArgumentParser(description="Z-Image-Turbo Web UI")
-    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host à écouter (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=7860, help="Port à utiliser (default: 7860)")
-    parser.add_argument("--share", action="store_true", help="Créer un lien public Gradio")
-    parser.add_argument("--load-on-start", action="store_true", help="Charger le modèle au démarrage")
-    parser.add_argument("--auth", type=str, help="Authentification user:pass")
-    parser.add_argument("--ssl-cert", type=str, help="Chemin vers le certificat SSL")
-    parser.add_argument("--ssl-key", type=str, help="Chemin vers la clé SSL")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to listen on (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=7860, help="Port to use (default: 7860)")
+    parser.add_argument("--share", action="store_true", help="Create a public Gradio link")
+    parser.add_argument("--load-on-start", action="store_true", help="Load model at startup")
+    parser.add_argument("--auth", type=str, help="Authentication user:pass")
+    parser.add_argument("--ssl-cert", type=str, help="Path to SSL certificate")
+    parser.add_argument("--ssl-key", type=str, help="Path to SSL key")
     
     args = parser.parse_args()
     
@@ -529,37 +529,37 @@ def main():
     # Setup
     setup_output_dir()
     
-    # Info système
-    print("\n🖥️ Informations système:")
+    # System info
+    print("\n🖥️ System information:")
     print(get_system_info())
     
-    # Création de l'UI
+    # Create UI
     app = create_ui()
     
-    # Configuration SSL si fournie
+    # SSL configuration if provided
     ssl_verify = False
     if args.ssl_cert and args.ssl_key:
         ssl_verify = (args.ssl_cert, args.ssl_key)
     
-    # Authentification
+    # Authentication
     auth = None
     if args.auth:
         user, password = args.auth.split(":")
         auth = (user, password)
     
-    print(f"\n🌐 Lancement du serveur...")
-    print(f"   URL locale: http://localhost:{args.port}")
-    print(f"   URL réseau: http://{args.host}:{args.port}")
+    print(f"\n🌐 Starting server...")
+    print(f"   Local URL: http://localhost:{args.port}")
+    print(f"   Network URL: http://{args.host}:{args.port}")
     
     if args.share:
-        print("   Lien public Gradio sera créé...")
+        print("   Public Gradio link will be created...")
     
     if auth:
-        print(f"   Authentification activée: {auth[0]}")
+        print(f"   Authentication enabled: {auth[0]}")
     
     print("\n" + "=" * 60)
     
-    # Lancement
+    # Launch
     app.launch(
         server_name=args.host,
         server_port=args.port,

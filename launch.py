@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script de lancement pour Z-Image-Turbo Web UI
-Lance l'application avec les paramètres optimaux pour accès distant
+Launch script for Z-Image-Turbo Web UI
+Launches the application with optimal parameters for remote access
 """
 
 import os
@@ -12,7 +12,7 @@ import socket
 
 
 def get_local_ip():
-    """Récupère l'IP locale pour afficher l'URL d'accès"""
+    """Gets the local IP to display the access URL"""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
@@ -24,89 +24,89 @@ def get_local_ip():
 
 
 def check_cuda():
-    """Vérifie si CUDA est disponible"""
+    """Checks if CUDA is available"""
     try:
         import torch
         if torch.cuda.is_available():
-            print(f"✅ CUDA disponible: {torch.cuda.get_device_name(0)}")
+            print(f"✅ CUDA available: {torch.cuda.get_device_name(0)}")
             print(f"   VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
             return True
         else:
-            print("⚠️ CUDA non disponible - Mode CPU (lent)")
+            print("⚠️ CUDA not available - CPU mode (slow)")
             return False
     except ImportError:
-        print("❌ PyTorch non installé")
+        print("❌ PyTorch not installed")
         return False
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Lance Z-Image-Turbo Web UI",
+        description="Launch Z-Image-Turbo Web UI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Exemples d'utilisation:
-  python launch.py                    # Lancement basique
-  python launch.py --load-on-start    # Charge le modèle au démarrage
-  python launch.py --share            # Crée un lien public temporaire
-  python launch.py --port 8080        # Utilise le port 8080
-  python launch.py --auth admin:pass  # Active l'authentification
+Usage examples:
+  python launch.py                    # Basic launch
+  python launch.py --load-on-start    # Load model at startup
+  python launch.py --share            # Create temporary public link
+  python launch.py --port 8080        # Use port 8080
+  python launch.py --auth admin:pass  # Enable authentication
         """
     )
     
     parser.add_argument("--host", type=str, default="0.0.0.0",
-                        help="Host à écouter (default: 0.0.0.0 pour accès réseau)")
+                        help="Host to listen on (default: 0.0.0.0 for network access)")
     parser.add_argument("--port", type=int, default=7860,
-                        help="Port à utiliser (default: 7860)")
+                        help="Port to use (default: 7860)")
     parser.add_argument("--share", action="store_true",
-                        help="Créer un lien public Gradio (72h max)")
+                        help="Create a public Gradio link (72h max)")
     parser.add_argument("--load-on-start", action="store_true",
-                        help="Charger le modèle automatiquement au démarrage")
+                        help="Load model automatically at startup")
     parser.add_argument("--auth", type=str,
-                        help="Authentification basique 'user:password'")
+                        help="Basic authentication 'user:password'")
     parser.add_argument("--no-autolaunch", action="store_true",
-                        help="Ne pas ouvrir le navigateur automatiquement")
+                        help="Do not open browser automatically")
     
     args = parser.parse_args()
     
-    # Bannière
+    # Banner
     print("""
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║           ⚡ Z-Image-Turbo Web UI Launcher ⚡                ║
 ║                                                              ║
-║   Interface web pour génération d'images avec Z-Image        ║
-║   Modèle: Tongyi-MAI/Z-Image-Turbo                           ║
+║   Web interface for image generation with Z-Image            ║
+║   Model: Tongyi-MAI/Z-Image-Turbo                            ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
     """)
     
-    # Vérifications
-    print("🔍 Vérifications préliminaires...")
+    # Checks
+    print("🔍 Preliminary checks...")
     print("-" * 50)
     
-    # Vérifier Python
+    # Check Python
     print(f"🐍 Python: {sys.version.split()[0]}")
     
-    # Vérifier CUDA
+    # Check CUDA
     has_cuda = check_cuda()
     
-    # Vérifier les dépendances
-    print("\n📦 Vérification des dépendances...")
+    # Check dependencies
+    print("\n📦 Checking dependencies...")
     try:
         import gradio
         print(f"✅ Gradio: {gradio.__version__}")
     except ImportError:
-        print("❌ Gradio non installé. Exécutez: pip install -r requirements.txt")
+        print("❌ Gradio not installed. Run: pip install -r requirements.txt")
         return 1
     
     try:
         import diffusers
         print(f"✅ Diffusers: {diffusers.__version__}")
     except ImportError:
-        print("❌ Diffusers non installé. Exécutez: pip install -r requirements.txt")
+        print("❌ Diffusers not installed. Run: pip install -r requirements.txt")
         return 1
     
-    # Construire la commande
+    # Build command
     cmd = [sys.executable, "app.py"]
     cmd.extend(["--host", args.host])
     cmd.extend(["--port", str(args.port)])
@@ -120,33 +120,33 @@ Exemples d'utilisation:
     if args.auth:
         cmd.extend(["--auth", args.auth])
     
-    # Afficher les infos d'accès
+    # Display access info
     print("\n" + "=" * 50)
-    print("🌐 Informations d'accès:")
+    print("🌐 Access Information:")
     print("=" * 50)
     
     local_ip = get_local_ip()
     print(f"📍 Local:    http://localhost:{args.port}")
-    print(f"🌐 Réseau:   http://{local_ip}:{args.port}")
+    print(f"🌐 Network:  http://{local_ip}:{args.port}")
     
     if args.host == "0.0.0.0":
-        print(f"\n💡 L'application est accessible depuis le réseau local!")
-        print(f"   Utilisez l'adresse: http://{local_ip}:{args.port}")
+        print(f"\n💡 Application is accessible from the local network!")
+        print(f"   Use address: http://{local_ip}:{args.port}")
     
     if args.share:
-        print(f"\n🌍 Un lien public sera créé (valide 72h)")
+        print(f"\n🌍 A public link will be created (valid 72h)")
     
     if args.auth:
-        print(f"\n🔒 Authentification activée: {args.auth}")
+        print(f"\n🔒 Authentication enabled: {args.auth}")
     
-    print("\n⚠️  Pour arrêter: appuyez sur CTRL+C")
+    print("\n⚠️  To stop: press CTRL+C")
     print("=" * 50 + "\n")
     
-    # Lancer l'application
+    # Launch application
     try:
         subprocess.run(cmd)
     except KeyboardInterrupt:
-        print("\n\n👋 Arrêt demandé. Au revoir!")
+        print("\n\n👋 Stop requested. Goodbye!")
         return 0
     
     return 0

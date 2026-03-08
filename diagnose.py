@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script de diagnostic pour Z-Image-Turbo Web UI
-Exécute ce script pour vérifier l'installation
+Diagnostic script for Z-Image-Turbo Web UI
+Run this script to check the installation
 """
 
 import sys
@@ -17,35 +17,35 @@ def print_section(title):
 def check_python():
     print_section("Python")
     print(f"Version: {sys.version}")
-    print(f"Exécutable: {sys.executable}")
+    print(f"Executable: {sys.executable}")
     print(f"Platform: {sys.platform}")
 
 def check_venv():
-    print_section("Environnement Virtuel")
+    print_section("Virtual Environment")
     
-    # Vérifier si on est dans un venv
+    # Check if in venv
     in_venv = (
         hasattr(sys, 'real_prefix') or
         (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
     )
-    print(f"Dans un venv: {'✅ Oui' if in_venv else '❌ Non'}")
+    print(f"In a venv: {'✅ Yes' if in_venv else '❌ No'}")
     
     if in_venv:
         print(f"  Prefix: {sys.prefix}")
         print(f"  Base Prefix: {getattr(sys, 'base_prefix', 'N/A')}")
     
-    # Chercher le venv local
+    # Look for local venv
     project_dir = Path(__file__).parent
     venv_dir = project_dir / "venv"
-    print(f"\nVenv dans le projet: {venv_dir}")
-    print(f"  Existe: {'✅ Oui' if venv_dir.exists() else '❌ Non'}")
+    print(f"\nVenv in project: {venv_dir}")
+    print(f"  Exists: {'✅ Yes' if venv_dir.exists() else '❌ No'}")
     
     if venv_dir.exists():
         python_exe = venv_dir / "Scripts" / "python.exe"
-        print(f"  Python.exe: {'✅ Trouvé' if python_exe.exists() else '❌ Introuvable'}")
+        print(f"  Python.exe: {'✅ Found' if python_exe.exists() else '❌ Not found'}")
 
 def check_dependencies():
-    print_section("Dépendances")
+    print_section("Dependencies")
     
     deps = [
         ("torch", "PyTorch"),
@@ -62,10 +62,10 @@ def check_dependencies():
     for module, name in deps:
         try:
             mod = __import__(module)
-            version = getattr(mod, '__version__', 'inconnue')
+            version = getattr(mod, '__version__', 'unknown')
             print(f"  ✅ {name}: {version}")
         except ImportError as e:
-            print(f"  ❌ {name}: NON INSTALLÉ ({e})")
+            print(f"  ❌ {name}: NOT INSTALLED ({e})")
             all_ok = False
     
     return all_ok
@@ -76,18 +76,18 @@ def check_cuda():
     try:
         import torch
         if torch.cuda.is_available():
-            print(f"  ✅ CUDA disponible")
-            print(f"  Version CUDA (PyTorch): {torch.version.cuda}")
+            print(f"  ✅ CUDA available")
+            print(f"  CUDA version (PyTorch): {torch.version.cuda}")
             print(f"  GPU: {torch.cuda.get_device_name(0)}")
             print(f"  VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
         else:
-            print(f"  ⚠️  CUDA non disponible")
-            print(f"  PyTorch utilisera le CPU (lent)")
+            print(f"  ⚠️  CUDA not available")
+            print(f"  PyTorch will use CPU (slow)")
     except Exception as e:
-        print(f"  ❌ Erreur: {e}")
+        print(f"  ❌ Error: {e}")
 
 def check_files():
-    print_section("Fichiers du projet")
+    print_section("Project Files")
     
     project_dir = Path(__file__).parent
     files = ["app.py", "launch.py", "requirements.txt"]
@@ -97,23 +97,23 @@ def check_files():
         print(f"  {'✅' if path.exists() else '❌'} {f}")
 
 def test_launch():
-    print_section("Test de lancement")
+    print_section("Launch Test")
     
     project_dir = Path(__file__).parent
     venv_python = project_dir / "venv" / "Scripts" / "python.exe"
     
     if not venv_python.exists():
-        print("  ❌ Python du venv introuvable")
+        print("  ❌ Venv Python not found")
         return
     
-    print("  Test d'import de launch.py...")
+    print("  Testing launch.py imports...")
     try:
-        # Tester si on peut importer les modules de launch.py
+        # Test if we can import modules from launch.py
         result = subprocess.run(
             [str(venv_python), "-c", 
              "import sys; sys.path.insert(0, '.'); " +
              "import torch; import gradio; import diffusers; " +
-             "print('Tous les imports OK')"],
+             "print('All imports OK')"],
             cwd=project_dir,
             capture_output=True,
             text=True
@@ -122,7 +122,7 @@ def test_launch():
         if result.returncode == 0:
             print(f"  ✅ {result.stdout.strip()}")
         else:
-            print(f"  ❌ Erreur:")
+            print(f"  ❌ Error:")
             print(f"     stdout: {result.stdout}")
             print(f"     stderr: {result.stderr}")
     except Exception as e:
@@ -130,7 +130,7 @@ def test_launch():
 
 def main():
     print("\n" + "="*60)
-    print("  DIAGNOSTIC Z-Image-Turbo Web UI")
+    print("  Z-Image-Turbo Web UI DIAGNOSTIC")
     print("="*60)
     
     check_python()
@@ -140,16 +140,16 @@ def main():
     check_files()
     test_launch()
     
-    print_section("Résumé")
+    print_section("Summary")
     if deps_ok:
-        print("  ✅ Toutes les dépendances sont installées")
-        print("  ✅ Vous pouvez lancer: python launch.py")
+        print("  ✅ All dependencies are installed")
+        print("  ✅ You can launch: python launch.py")
     else:
-        print("  ❌ Certaines dépendances sont manquantes")
-        print("  📦 Exécutez: pip install -r requirements.txt")
+        print("  ❌ Some dependencies are missing")
+        print("  📦 Run: pip install -r requirements.txt")
     
     print()
-    input("Appuyez sur Entrée pour fermer...")
+    input("Press Enter to close...")
 
 if __name__ == "__main__":
     main()
