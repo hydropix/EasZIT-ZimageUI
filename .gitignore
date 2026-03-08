@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Outputs
+outputs/
+*.png
+*.jpg
+*.jpeg
+
+# Modèles (si téléchargés localement)
+models/
+checkpoints/
+*.safetensors
+*.ckpt
+*.bin
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

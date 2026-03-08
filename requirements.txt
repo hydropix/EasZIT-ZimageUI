@@ -1,0 +1,25 @@
+# Z-Image-Turbo Web UI Requirements
+# Installation: pip install -r requirements.txt
+# Note: PyTorch est installe automatiquement par start-zimage.bat (version CUDA)
+
+# Diffusers pour Z-Image
+git+https://github.com/huggingface/diffusers.git@main
+
+# UI Gradio
+gradio>=5.20.0
+
+# Dependances ML
+transformers>=4.49.0
+accelerate>=1.4.0
+safetensors>=0.5.3
+
+# Optimisations optionnelles
+# flash-attn>=2.7.0  # Decommenter si compatible avec votre GPU
+
+# Utilitaires
+pillow>=11.0.0
+numpy>=2.0.0
+huggingface-hub>=0.29.0
+
+# Pour acces reseau securise (optionnel)
+# pyngrok>=7.0.0  # Pour tunneling avec ngrok
