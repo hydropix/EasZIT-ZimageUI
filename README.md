@@ -1,38 +1,38 @@
 # ⚡ Z-Image-Turbo Web UI
 
-Interface web pour générer des images avec **Z-Image-Turbo**, le modèle de diffusion de 6 milliards de paramètres développé par Alibaba/Tongyi. Optimisé pour s'exécuter sur un PC avec GPU et être accessible à distance via le réseau.
+Web interface for generating images with **Z-Image-Turbo**, the 6 billion parameter diffusion model developed by Alibaba/Tongyi. Optimized to run on a PC with GPU and accessible remotely via network.
 
-## 🎯 Caractéristiques
+## 🎯 Features
 
-- **Modèle**: [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) (6B paramètres)
-- **Vitesse**: Génération en ~8 étapes (quelques secondes)
-- **Qualité**: Rendu photoréaliste avec support texte bilingue (EN/ZH)
-- **Interface**: Gradio moderne et intuitive
-- **Accès**: Local + réseau local + tunnel public (optionnel)
-- **Optimisations**: Flash Attention, compilation torch, CPU offloading
+- **Model**: [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) (6B parameters)
+- **Speed**: Generation in ~8 steps (a few seconds)
+- **Quality**: Photorealistic rendering with bilingual text support (EN/ZH)
+- **Interface**: Modern and intuitive Gradio UI
+- **Access**: Local + local network + public tunnel (optional)
+- **Optimizations**: Flash Attention, torch compilation, CPU offloading
 
-## 📋 Prérequis
+## 📋 Prerequisites
 
-### Configuration minimale
-- **GPU**: NVIDIA avec 8GB+ VRAM (16GB recommandé)
-- **RAM**: 16GB système
-- **OS**: Windows 10/11, Linux, macOS (CPU lent)
+### Minimum Configuration
+- **GPU**: NVIDIA with 8GB+ VRAM (16GB recommended)
+- **RAM**: 16GB system
+- **OS**: Windows 10/11, Linux, macOS (CPU slow)
 - **Python**: 3.9 - 3.12
 
-### Configuration recommandée
+### Recommended Configuration
 - **GPU**: RTX 3090/4090 (24GB VRAM)
 - **RAM**: 32GB
 - **CUDA**: 12.1+
 
 ## 🚀 Installation
 
-### 1. Cloner ou créer le projet
+### 1. Clone or create the project
 
 ```bash
 cd Z-Image-Turbo-WebUI
 ```
 
-### 2. Créer un environnement virtuel (recommandé)
+### 2. Create a virtual environment (recommended)
 
 **Windows:**
 ```bash
@@ -46,92 +46,92 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Installer les dépendances
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> **Note**: L'installation de `diffusers` depuis Git peut prendre quelques minutes.
+> **Note**: Installing `diffusers` from Git may take a few minutes.
 
-### 4. (Optionnel) Installer Flash Attention
+### 4. (Optional) Install Flash Attention
 
-Pour une accélération supplémentaire sur les GPUs récents:
+For additional acceleration on recent GPUs:
 
 ```bash
 pip install flash-attn --no-build-isolation
 ```
 
-> ⚠️ Nécessite CUDA toolkit et peut prendre longtemps à compiler.
+> ⚠️ Requires CUDA toolkit and may take a long time to compile.
 
-## 🎮 Utilisation
+## 🎮 Usage
 
-### Lancement simple
+### Simple Launch
 
 ```bash
 python launch.py
 ```
 
-L'interface sera accessible sur:
+The interface will be accessible at:
 - Local: http://localhost:7860
-- Réseau: http://[IP_DU_PC]:7860
+- Network: http://[PC_IP]:7860
 
-### Options avancées
+### Advanced Options
 
 ```bash
-# Charger le modèle automatiquement au démarrage
+# Load model automatically at startup
 python launch.py --load-on-start
 
-# Changer le port
+# Change port
 python launch.py --port 8080
 
-# Créer un lien public (72h max)
+# Create public link (72h max)
 python launch.py --share
 
-# Activer l'authentification
-python launch.py --auth admin:votremotdepasse
+# Enable authentication
+python launch.py --auth admin:yourpassword
 
-# Combiner les options
+# Combine options
 python launch.py --load-on-start --port 8080 --auth user:pass
 ```
 
-### Accès depuis un autre PC
+### Access from another PC
 
-1. Sur le PC avec GPU (serveur):
+1. On the PC with GPU (server):
 ```bash
 python launch.py --host 0.0.0.0 --port 7860
 ```
 
-2. Sur l'autre PC (client), ouvrir le navigateur et aller sur:
+2. On the other PC (client), open the browser and go to:
 ```
-http://[IP_DU_SERVEUR]:7860
+http://[SERVER_IP]:7860
 ```
 
-Pour trouver l'IP du serveur:
-- Windows: `ipconfig` dans CMD
-- Linux: `ip addr` ou `hostname -I`
+To find the server IP:
+- Windows: `ipconfig` in CMD
+- Linux: `ip addr` or `hostname -I`
 
 ## 🖼️ Interface
 
-### Onglet Génération
-- **Prompt**: Description de l'image souhaitée
-- **Prompt négatif**: Éléments à éviter
-- **Dimensions**: Largeur/Hauteur (512-2048)
-- **Étapes**: 1-50 (9 recommandé pour Turbo)
-- **Guidance Scale**: 0.0 recommandé pour Turbo
-- **Seed**: Pour reproduire les résultats
-- **Batch Size**: Générer plusieurs images
+### Generation Tab
+- **Prompt**: Description of the desired image
+- **Negative Prompt**: Elements to avoid
+- **Dimensions**: Width/Height (512-2048)
+- **Steps**: 1-50 (9 recommended for Turbo)
+- **Guidance Scale**: 0.0 recommended for Turbo
+- **Seed**: To reproduce results
+- **Batch Size**: Generate multiple images
 
-### Onglet Gestion du Modèle
-- Chargement/déchargement du modèle
-- Configuration du dtype (bfloat16/float16/float32)
-- Backend d'attention (SDPA/Flash Attention)
-- CPU offloading pour GPUs avec peu de VRAM
-- Compilation torch pour accélération
+### Model Management Tab
+- Load/unload model
+- Configure dtype (bfloat16/float16/float32)
+- Attention backend (SDPA/Flash Attention)
+- CPU offloading for GPUs with limited VRAM
+- Torch compilation for acceleration
 
-### Exemples de prompts
+### Prompt Examples
 
-1. Portrait traditionnel chinois:
+1. Traditional Chinese portrait:
 ```
 Young Chinese woman in red Hanfu, intricate embroidery. Impeccable makeup, 
 red floral forehead pattern. Elaborate high bun, golden phoenix headdress, 
@@ -153,99 +153,99 @@ wooden bridge over a koi pond, soft morning light filtering through
 the trees, photorealistic
 ```
 
-## ⚙️ Configuration avancée
+## ⚙️ Advanced Configuration
 
-### Variables d'environnement
+### Environment Variables
 
 ```bash
-# Forcer le device
-export CUDA_VISIBLE_DEVICES=0  # GPU spécifique
+# Force device
+export CUDA_VISIBLE_DEVICES=0  # Specific GPU
 
-# Optimisation mémoire
+# Memory optimization
 export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
 
 # Compilation
 export TORCH_COMPILE_BACKEND=inductor
 ```
 
-### Utilisation directe (sans launcher)
+### Direct Usage (without launcher)
 
 ```bash
 python app.py --help
 
-# Toutes les options
+# All options
 python app.py --host 0.0.0.0 --port 7860 --load-on-start --share
 ```
 
-## 🔧 Dépannage
+## 🔧 Troubleshooting
 
 ### "CUDA out of memory"
-- Activez "CPU Offloading" dans l'interface
-- Réduisez la résolution (512x512)
-- Utilisez `float16` au lieu de `bfloat16`
-- Fermez les autres applications utilisant le GPU
+- Enable "CPU Offloading" in the interface
+- Reduce resolution (512x512)
+- Use `float16` instead of `bfloat16`
+- Close other applications using the GPU
 
 ### "No module named 'diffusers'"
 ```bash
 pip install git+https://github.com/huggingface/diffusers
 ```
 
-### Modèle très lent
-- Vérifiez que CUDA est utilisé: `torch.cuda.is_available()`
-- Activez la compilation du modèle
-- Essayez Flash Attention si compatible
+### Model very slow
+- Verify CUDA is being used: `torch.cuda.is_available()`
+- Enable model compilation
+- Try Flash Attention if compatible
 
-### Impossible d'accéder depuis le réseau
-- Vérifiez le firewall Windows (autoriser Python)
-- Utilisez `--host 0.0.0.0`
-- Vérifiez que le port n'est pas utilisé: `netstat -an | findstr 7860`
+### Cannot access from network
+- Check Windows firewall (allow Python)
+- Use `--host 0.0.0.0`
+- Check that port is not in use: `netstat -an | findstr 7860`
 
-## 📁 Structure du projet
+## 📁 Project Structure
 
 ```
 Z-Image-Turbo-WebUI/
-├── app.py              # Application principale Gradio
-├── launch.py           # Script de lancement
-├── requirements.txt    # Dépendances Python
-├── README.md          # Ce fichier
-├── outputs/           # Images générées
+├── app.py              # Main Gradio application
+├── launch.py           # Launch script
+├── requirements.txt    # Python dependencies
+├── README.md          # This file
+├── outputs/           # Generated images
 │   └── images/
-└── venv/              # Environnement virtuel
+└── venv/              # Virtual environment
 ```
 
-## 🌐 Accès distant avancé
+## 🌐 Advanced Remote Access
 
-### Avec ngrok (tunnel sécurisé)
+### With ngrok (secure tunnel)
 
-1. Installer ngrok: https://ngrok.com/download
-2. Créer un compte gratuit et configurer le token
-3. Lancer:
+1. Install ngrok: https://ngrok.com/download
+2. Create a free account and configure token
+3. Launch:
 ```bash
 ngrok http 7860
 ```
 
-### Avec Cloudflare Tunnel
+### With Cloudflare Tunnel
 
 ```bash
 cloudflared tunnel --url http://localhost:7860
 ```
 
-### Avec Tailscale (VPN mesh)
+### With Tailscale (mesh VPN)
 
-Idéal pour accès sécurisé entre vos appareils sans exposition publique.
+Ideal for secure access between your devices without public exposure.
 
-## 📚 Ressources
+## 📚 Resources
 
-- [Z-Image-Turbo sur HuggingFace](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)
-- [Documentation Diffusers](https://huggingface.co/docs/diffusers)
+- [Z-Image-Turbo on HuggingFace](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)
+- [Diffusers Documentation](https://huggingface.co/docs/diffusers)
 - [Gradio Documentation](https://gradio.app/docs)
 
-## 📝 Licence
+## 📝 License
 
-Ce projet utilise Z-Image-Turbo sous licence Apache 2.0.
+This project uses Z-Image-Turbo under Apache 2.0 license.
 
-## 🙏 Crédits
+## 🙏 Credits
 
-- Modèle: [Tongyi-MAI](https://huggingface.co/Tongyi-MAI) (Alibaba)
+- Model: [Tongyi-MAI](https://huggingface.co/Tongyi-MAI) (Alibaba)
 - UI: Gradio
 - Pipeline: HuggingFace Diffusers
