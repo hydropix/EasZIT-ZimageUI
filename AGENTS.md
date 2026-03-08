@@ -38,7 +38,8 @@ Z-Image-Turbo Web UI is a web interface for generating images using **Z-Image-Tu
 Z-Image-Turbo-WebUI/
 ├── app.py              # Main Gradio application - UI and image generation logic
 ├── launch.py           # Launcher script with pre-flight checks
-├── start-zimage.bat    # Windows batch script for one-click setup and launch
+├── setup-zimage.bat    # Windows batch for full setup/update (venv, deps, PyTorch)
+├── start-zimage.bat    # Windows batch for fast launch (no checks)
 ├── diagnose.py         # Diagnostic script for troubleshooting installation
 ├── requirements.txt    # Python dependencies
 ├── README.md          # User documentation (English)
@@ -55,7 +56,10 @@ Z-Image-Turbo-WebUI/
 
 ### Quick Start (Windows)
 ```bash
-# One-click setup and launch (handles venv, PyTorch CUDA, dependencies)
+# First time: Setup (installs venv, PyTorch CUDA, dependencies)
+setup-zimage.bat
+
+# Then: Launch application (fast, no checks)
 start-zimage.bat
 ```
 
@@ -106,10 +110,9 @@ python diagnose.py    # Run installation diagnostics
   - `get_available_device()` - Detects CUDA/MPS/CPU
 - Image generation: `generate_image()` - Main inference pipeline
 - System info: `get_system_info()` - PyTorch/CUDA/GPU details
-- UI creation: `create_ui()` - Gradio interface with 3 tabs:
-  - 🎨 Génération: Main generation interface (prompt, parameters, output)
-  - ⚙️ Gestion du Modèle: Model load/unload and configuration
-  - 🔬 Paramètres avancés: Advanced settings and aspect ratio shortcuts
+- UI creation: `create_ui()` - Gradio interface with 2 tabs:
+  - Generation: Main generation interface (prompt, parameters, output)
+  - Model Management: Model load/unload and configuration
 - Entry point: `main()` - Argument parsing and server launch
 
 **`launch.py`** (~156 lines):
@@ -117,10 +120,15 @@ python diagnose.py    # Run installation diagnostics
 - `check_cuda()` - Verifies PyTorch CUDA availability
 - `main()` - Pre-flight checks, dependency verification, launches app.py
 
-**`start-zimage.bat`** (Windows):
-- Automated setup: Python check → venv creation → PyTorch CUDA install → dependency install
+**`setup-zimage.bat`** (Windows):
+- Full setup/update: Python check → venv creation → GitHub pull → PyTorch CUDA install → dependency install
 - Cleanup of corrupted distributions
-- Launches: `python launch.py --load-on-start`
+- Run this first, or when you need to update dependencies
+
+**`start-zimage.bat`** (Windows):
+- Fast launcher: only checks venv exists, then launches immediately
+- Runs: `python launch.py --load-on-start`
+- Use this for daily launches after setup is complete
 
 **`diagnose.py`**:
 - Comprehensive diagnostic tool for troubleshooting
@@ -145,10 +153,19 @@ python diagnose.py    # Run installation diagnostics
 
 ### Coding Style
 - Global variables for model state: `pipe`, `model_loaded`, `model_loading`
-- French naming for UI labels and user messages
+- **English for all UI labels and user messages**
 - English for technical/internal variable names
-- Docstrings in French
+- Docstrings in English
 - Type hints not used
+
+### Icons
+- **Use Google Material Icons** (Material Symbols Rounded) instead of emojis
+- For buttons: Use the `icon` parameter with direct SVG URLs from Google Fonts:
+  ```python
+  gr.Button("Label", icon="https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsrounded/icon_name/default/24px.svg")
+  ```
+- Available icons: https://fonts.google.com/icons (click an icon, select "SVG" format)
+- **Do not use emojis** in the UI or console output
 
 ### Output Handling
 - Generated images saved to: `outputs/images/zimage_{timestamp}_{uuid}_{index}.png`
@@ -196,7 +213,7 @@ TORCH_COMPILE_BACKEND=inductor      # Compilation backend
 4. **Memory monitoring**: Check CUDA memory during generation
 
 ### Manual Test Checklist
-- [ ] Diagnostic script shows all ✅
+- [ ] Diagnostic script shows all checks passed
 - [ ] Model loads without errors
 - [ ] Image generates in < 30 seconds (GPU) or completes (CPU)
 - [ ] Output saved to outputs/images/
@@ -220,7 +237,7 @@ TORCH_COMPILE_BACKEND=inductor      # Compilation backend
 ### Memory Management
 - Model downloads ~13GB from HuggingFace on first load
 - Generated images accumulate in `outputs/images/` (not auto-cleaned)
-- Use "Décharger le modèle" button to free VRAM
+- Use "Unload Model" button to free VRAM
 - CPU offloading available for 8GB VRAM GPUs
 
 ### Error Handling

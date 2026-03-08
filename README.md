@@ -10,6 +10,7 @@ Web interface for generating images with **Z-Image-Turbo**, the 6 billion parame
 - **Interface**: Modern and intuitive Gradio UI
 - **Access**: Local + local network + public tunnel (optional)
 - **Optimizations**: Flash Attention, torch compilation, CPU offloading
+- **Auto-Generation**: Built-in auto-generation mode for creating multiple variations
 
 ## 📋 Prerequisites
 
@@ -121,6 +122,21 @@ To find the server IP:
 - **Guidance Scale**: 0.0 recommended for Turbo
 - **Seed**: To reproduce results
 - **Batch Size**: Generate multiple images
+- **Diversity Enhancement**: Fix low variation with SeedVarianceEnhancer
+
+### Diversity Enhancement (Coming Soon)
+
+Z-Image-Turbo tends to produce similar images even with different seeds due to its distillation process. 
+
+**Current Status**: The SeedVarianceEnhancer feature has been temporarily removed due to implementation issues with Z-Image-Turbo's specific pipeline format.
+
+**Workarounds**:
+- Use different seeds for each generation
+- Vary your prompts slightly (change adjectives, lighting terms)
+- Try different inference step counts (8, 9, or 10)
+- Use batch generation to create multiple variations at once
+
+A proper implementation based on ComfyUI's proven approach will be added in a future update.
 
 ### Model Management Tab
 - Load/unload model
